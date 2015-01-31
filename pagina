@@ -1,0 +1,90 @@
+
+<html>
+<head>
+    <title>Loading additional databases</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"> </script>
+    <script type="text/javascript">
+        var ge;
+        google.load("earth", "1", {"language":"en", "other_params":"sensor=false"});
+
+        function init() {
+            google.earth.createInstance('map3d', initCB, failureCB);
+        }
+
+        function initCB(instance) {
+            ge = instance;
+            ge.getWindow().setVisibility(true);
+            sideDatabaseSuccess();   
+        }
+
+        function failureCB(errorCode) {
+            console.log("fallo");
+        }
+
+        function sideDatabaseSuccess() {
+            var lookAt = ge.createLookAt('');
+            lookAt.setLatitude(-33);
+            lookAt.setLongitude(-71);
+            lookAt.setRange(10000);
+            ge.getView().setAbstractView(lookAt);
+        }
+
+        google.setOnLoadCallback(init);
+
+        function bla(){
+            var cant_ptos = parseInt(document.getElementById("count_points").value);
+          //  myNumero.set_cant_points(cant_ptos);
+            cant_ptos = 10;
+            var globeBounds = ge.getView().getViewportGlobeBounds();
+            data_mapa(globeBounds.getNorth(), globeBounds.getSouth(), globeBounds.getWest() ,globeBounds.getEast(), cant_ptos);           
+        }
+
+        function data_mapa(N, S, W, E, cant_ptos){ //TODO paralelizar
+            console.log("Norte " + N + ",Sur " + S + ", Oeste "+ W +", Este "+ E);
+            var group_of_count = 100;
+            for (var j_of_data = 0; j_of_data < cant_ptos; j_of_data++ ){
+                var i = j_of_data;
+                write_point = [];
+                for(; i < (j_of_data + group_of_count); ++i){
+                    array_coord_random = random_coordenadas(N, S, W, E);
+                    array_coord_random[2] =  ge.getGlobe().getGroundAltitude(array_coord_random[0], array_coord_random[1]);
+                    write_point.push(array_coord_random[0]);
+                    write_point.push(array_coord_random[1])
+                    write_point.push(array_coord_random[2])
+
+                }
+
+            
+                var floatBuffer = new Float32Array(write_point.length);           
+                floatBuffer.set(write_point);
+                var bytesArray = new Uint8ClampedArray(floatBuffer.buffer);
+                myNumero.getCoord(bytesArray);
+                j_of_data = i;
+            }
+            myNumero.finish_information();
+        }
+
+
+        function random_coordenadas(Lat_min,Lat_max, Long_min, Long_max){
+            coord_x =  Math.random()*(Lat_max-Lat_min+1)+Lat_min;
+            coord_y = Math.random()*(Long_max-Long_min+1)+Long_min;
+            return [coord_x, coord_y, 0];
+        }
+
+    </script>
+</head>
+
+<body>
+    <div id="map3d" style="height: 400px; width: 600px;"></div>
+ 
+
+    <select id="count_points">
+        <option value="100000">
+            100000
+        </option>
+    </select>
+    <button type="button" id="obtain_points" value="add_point" onclick="bla()">
+        Obtain Malla
+    </button>
+</body>
+</html>
